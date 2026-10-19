@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+  <DataSources>
+    <!-- A SHARED data source reference. Not a failure to parse - it is a pointer the report genuinely
+         holds - but it names no server, so it is unresolved WITH THAT REASON. Whether it resolves
+         depends on whether the .rds is in the same tree, which is the estate assembler's call. -->
+    <DataSource Name="Shared">
+      <DataSourceReference>/Shared/OrdersShared</DataSourceReference>
+    </DataSource>
+  </DataSources>
+  <DataSets>
+    <DataSet Name="RevenueRollup">
+      <Query>
+        <DataSourceName>Shared</DataSourceName>
+        <CommandText>SELECT c.Region, SUM(o.Total) AS Revenue FROM dbo.Orders o JOIN dbo.Customers c ON c.CustomerId = o.CustomerId GROUP BY c.Region</CommandText>
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>

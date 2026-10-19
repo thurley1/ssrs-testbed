@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A schema namespace outside the committed supported set. A THIRD answer, distinct from malformed: the
+  document is fine and we cannot vouch for its element paths. Partial NAMING what it found, so a wrong
+  supported set over-reports partial parses - which is visible - instead of silently mis-parsing reports
+  into a lineage diagram that reads as complete.
+-->
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2003/10/reportdefinition">
+  <DataSets>
+    <DataSet Name="Old">
+      <Query>
+        <CommandText>SELECT * FROM dbo.Orders</CommandText>
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>

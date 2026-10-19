@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A shared data source. Its credential belongs to THIS file, not to each report that references it -
+  attributing it per report would report one credential once per report rather than once.
+  Integrated security, so no password: the inventory must not report one.
+-->
+<RptDataSource xmlns="http://schemas.microsoft.com/SQLServer/reporting/2006/03/StandardDataSource" Name="OrdersShared">
+  <ConnectionProperties>
+    <Extension>SQL</Extension>
+    <ConnectString>Data Source=sql01;Initial Catalog=Orders;Integrated Security=SSPI</ConnectString>
+    <IntegratedSecurity>true</IntegratedSecurity>
+  </ConnectionProperties>
+</RptDataSource>

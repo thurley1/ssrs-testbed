@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ssrs-testbed: the main report. Authored from a published RDL schema version - see README.md for what
+  this fixture can and cannot prove.
+-->
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+  <DataSources>
+    <!-- An EMBEDDED connection string with a plaintext password. An .rdl really does carry these
+         inline, and spec 352 confirms ReportServer's DataSource table holds stored ones - so a report's
+         data source is as likely to carry a credential as an SSIS connection is. Nothing of this value
+         may reach the structural model: the record has nowhere to put a connection string. -->
+    <DataSource Name="OrdersDb">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString>Data Source=sql01;Initial Catalog=Orders;User ID=svc_etl;Password=Fixture-Pw-E5</ConnectString>
+      </ConnectionProperties>
+    </DataSource>
+  </DataSources>
+
+  <DataSets>
+    <!-- SQL text. Yields a read edge per table it names, spelled the BARE way SchemaProjectBuilder
+         emits a table type - asserted cross-parser against what SqlSchemaParser actually produces. -->
+    <DataSet Name="OpenOrderLines">
+      <Query>
+        <DataSourceName>OrdersDb</DataSourceName>
+        <CommandType>Text</CommandType>
+        <CommandText>
+          SELECT o.OrderId, o.Total, l.Sku, l.Amount
+            FROM dbo.Orders o
+            JOIN dbo.OrderLines l ON l.OrderId = o.OrderId
+           WHERE o.Status = 'Open'
+        </CommandText>
+      </Query>
+    </DataSet>
+
+    <!-- CommandType omitted. It defaults to Text in RDL, so this is SQL rather than unknown - treating
+         an absent CommandType as unknown would make most real reports unresolved. -->
+    <DataSet Name="CustomerLookup">
+      <Query>
+        <DataSourceName>OrdersDb</DataSourceName>
+        <CommandText>SELECT c.CustomerId, c.Name FROM dbo.Customers c</CommandText>
+      </Query>
+    </DataSet>
+
+    <!-- PROCEDURE-BACKED. This is the load-bearing hop for the lineage claim: a proc-backed dataset
+         never names its tables, so the only route from the report to the data is through the procedure.
+         A spelling mismatch with how 351 emits a procedure type deletes the finding silently. -->
+    <DataSet Name="OrderSummary">
+      <Query>
+        <DataSourceName>OrdersDb</DataSourceName>
+        <CommandType>StoredProcedure</CommandType>
+        <CommandText>dbo.usp_LoadOrders</CommandText>
+      </Query>
+    </DataSet>
+
+    <!-- A dataset that populates a parameter's valid values rather than a report body region. -->
+    <DataSet Name="Regions">
+      <Query>
+        <DataSourceName>OrdersDb</DataSourceName>
+        <CommandText>SELECT DISTINCT c.Region FROM dbo.Customers c</CommandText>
+      </Query>
+    </DataSet>
+
+    <!-- EXPRESSION-BUILT. Recorded as unresolved WITH ITS REASON and never resolved by guess. The count
+         of these is what keeps "no reports read this table" apart from "no reports we could resolve read
+         it" - without which this spec's own headline licenses the inverse conclusion, stop maintaining
+         this table, from an unmeasured absence. -->
+    <DataSet Name="DynamicPivot">
+      <Query>
+        <DataSourceName>OrdersDb</DataSourceName>
+        <CommandText>="SELECT * FROM " &amp; Parameters!TableName.Value &amp; " WHERE 1=1"</CommandText>
+      </Query>
+    </DataSet>
+
+    <!-- Declared with no command at all. A different answer from an expression. -->
+    <DataSet Name="Placeholder">
+      <Query>
+        <DataSourceName>OrdersDb</DataSourceName>
+      </Query>
+    </DataSet>
+  </DataSets>
+
+  <ReportParameters>
+    <ReportParameter Name="Region">
+      <DataType>String</DataType>
+      <DefaultValue><Values><Value>North</Value></Values></DefaultValue>
+      <!-- Populated by a dataset query, which is a dependency rather than a constant - and one of the
+           ways a dataset exists that nothing in the report body references. -->
+      <ValidValues>
+        <DataSetReference>
+          <DataSetName>Regions</DataSetName>
+          <ValueField>Region</ValueField>
+        </DataSetReference>
+      </ValidValues>
+    </ReportParameter>
+    <ReportParameter Name="AsOf">
+      <DataType>DateTime</DataType>
+      <DefaultValue><Values><Value>2026-01-01</Value></Values></DefaultValue>
+    </ReportParameter>
+  </ReportParameters>
+</Report>

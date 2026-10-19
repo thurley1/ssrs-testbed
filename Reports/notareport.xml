@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ordinary XML with a Report-ish shape but the wrong extension and root. Must not be claimed. -->
+<ReportSettings>
+  <Theme>Corporate</Theme>
+</ReportSettings>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A shared data source reference whose target is NOT in this tree. The mirror of RevenueByRegion, which
+  references one that is - and the pair is the point: a reference that resolves must not report as
+  missing, and a reference that is genuinely missing must not quietly resolve to nothing. It decides
+  whether the report appears in the connection inventory at all.
+-->
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+  <DataSources>
+    <DataSource Name="Retired">
+      <DataSourceReference>/Shared/DecommissionedWarehouse</DataSourceReference>
+    </DataSource>
+  </DataSources>
+  <DataSets>
+    <DataSet Name="WarehouseStock">
+      <Query>
+        <DataSourceName>Retired</DataSourceName>
+        <CommandText>SELECT s.Sku, s.OnHand FROM dbo.Stock s</CommandText>
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>
